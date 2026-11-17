@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thiên Minh Networks — AI Agent Đánh Giá Yêu Cầu Chào Giá (RFQ)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --bg-body: #e9e8e4;
+      --bg-ambient-1: #d6d6d2;
+      --bg-ambient-2: #dcdad5;
+      
+      --shell-bg: linear-gradient(140deg, #faf9f6f5, #f3f2eeea);
+      --shell-border: #ffffff;
+      --shell-shadow: 0 25px 70px rgba(37, 41, 33, 0.08);
+      
+      --ink: #1f231b;
+      --ink-muted: #6b7062;
+      --ink-dim: #9aa090;
+      
+      --card-bg: #ffffff;
+      --card-border: #e3e6dc;
+      --card-hover-border: #a4b391;
+      
+      --primary: #2d6a4f;
+      --primary-hover: #1b4332;
+      --primary-light: #e8f5ec;
+      --accent-warm: #d97706;
+      --accent-danger: #e11d48;
+      --accent-blue: #2563eb;
+      --accent-purple: #7c3aed;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-shell: 32px;
+      
+      --sidebar-w: 290px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-main); }
+    html { scroll-behavior: smooth; }
+    body {
+      background: radial-gradient(ellipse at 10% 0%, var(--bg-ambient-1), transparent 45%),
+                  radial-gradient(ellipse at 100% 80%, var(--bg-ambient-2), transparent 50%),
+                  var(--bg-body);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c5ccb8; border-radius: 99px; }
+
+    /* Screen switching */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ============================================================
+       1. INTRO HERO SCREEN (Màn hình giới thiệu chuẩn An Tín)
+       ============================================================ */
+    .intro-shell {
+      max-width: 1360px;
+      margin: 0 auto;
+      background: var(--shell-bg);
+      border: 1px solid var(--shell-border);
+      border-radius: var(--radius-shell);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.4), var(--shell-shadow);
+      padding: 0 44px 50px;
+      overflow: hidden;
+    }
+
+    .intro-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0;
+      border-bottom: 1px solid rgba(220, 224, 212, 0.7);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--primary), #52b788);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(45, 106, 79, 0.25);
+    }
+    .brand-sub { font-size: 12px; color: var(--ink-muted); font-weight: 500; }
+
+    .intro-menu { display: flex; align-items: center; gap: 8px; }
+    .intro-menu-btn {
+      background: transparent;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .intro-menu-btn:hover { color: var(--ink); background: rgba(0,0,0,0.04); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(45, 106, 79, 0.25);
+    }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-light {
+      background: #ffffff;
+      color: var(--ink);
+      border-color: #dce0d4;
+    }
+    .btn-light:hover { background: #f5f6f0; border-color: #cbd1c0; }
+    .btn-quiet {
+      background: transparent;
+      color: var(--ink-muted);
+      border-color: transparent;
+    }
+    .btn-quiet:hover { color: var(--ink); background: rgba(0,0,0,0.04); }
+
+    /* Hero main */
+    .intro-hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 40px;
+      padding: 48px 0 32px;
+      align-items: center;
+    }
+    .intro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 99px;
+      background: #e4ebe0;
+      border: 1px solid #c9d6bf;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin-bottom: 22px;
+    }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); }
+    .intro-title {
+      font-size: clamp(34px, 4.5vw, 52px);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -1.2px;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+    .intro-title-accent {
+      background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .intro-desc {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink-muted);
+      margin-bottom: 34px;
+      max-width: 580px;
+    }
+    .intro-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 38px; }
+
+    /* Proof bar */
+    .intro-proof-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(220, 224, 212, 0.7);
+    }
+    .proof-item {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: all 0.2s;
+    }
+    .proof-item:hover { transform: translateY(-2px); border-color: var(--card-hover-border); box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+    .proof-icon { font-size: 18px; margin-bottom: 2px; }
+    .proof-item b { font-size: 13px; font-weight: 800; color: var(--ink); }
+    .proof-item small { font-size: 10.5px; color: var(--ink-muted); }
+
+    /* Hero right preview card (3D Layered) */
+    .intro-preview-card {
+      background: #ffffff;
+      border: 1px solid #dce0d4;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 20px 45px rgba(35, 40, 30, 0.08);
+      position: relative;
+    }
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f0f2eb;
+    }
+    .preview-chip {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #e8f5ec;
+      color: var(--primary);
+    }
+    .pipeline-preview-list { display: flex; flex-direction: column; gap: 10px; }
+    .pipeline-p-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: #f7f8f4;
+      border: 1px solid #e7ebe0;
+      font-size: 12px;
+    }
+    .pipeline-p-item b { color: var(--ink); font-weight: 700; }
+    .pipeline-p-item small { color: var(--ink-muted); display: block; font-size: 10.5px; margin-top: 2px; }
+    .p-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid #d8dfcd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 11px;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    /* ============================================================
+       2. WORKSPACE SCREEN (Không gian làm việc theo 4 bước)
+       ============================================================ */
+    .workspace-shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      background: var(--shell-bg);
+      border: 1px solid var(--shell-border);
+      border-radius: var(--radius-shell);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.4), var(--shell-shadow);
+      display: flex;
+      min-height: 880px;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .workspace-sidebar {
+      width: var(--sidebar-w);
+      background: #f4f5f0;
+      border-right: 1px solid #e1e6d7;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sidebar-section-title {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--ink-dim);
+      margin: 20px 0 10px;
+      text-transform: uppercase;
+    }
+    .steps { display: flex; flex-direction: column; gap: 6px; }
+    .step-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .step-btn:hover:not(:disabled) { background: #eaece4; }
+    .step-btn.active {
+      background: #ffffff;
+      border-color: #d2dbcb;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .step-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: #e2e8da;
+      color: var(--ink-muted);
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-btn.active .step-num {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .step-info { flex: 1; min-width: 0; }
+    .step-info b { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--ink); }
+    .step-info small { font-size: 10.5px; color: var(--ink-muted); display: block; margin-top: 1px; }
+    .hitl-pill {
+      font-size: 8.5px;
+      font-weight: 900;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 1px 5px;
+      border-radius: 99px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid #e1e6d7;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Main Workspace */
+    .workspace-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      background: #fafaf7;
+    }
+
+    .workspace-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid #e6ebd8;
+      background: #ffffff;
+    }
+    .topbar-title h1 { font-size: 18px; font-weight: 800; color: var(--ink); }
+    .topbar-title p { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .online-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 99px;
+      background: #e8f5ec;
+      border: 1px solid #c9ebd4;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .online-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 2s infinite; }
+
+    /* Overview stats strip */
+    .overview-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 20px 32px;
+      background: #f7f8f3;
+      border-bottom: 1px solid #e8ede0;
+    }
+    .ov-card {
+      background: #ffffff;
+      border: 1px solid #e1e6d8;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+    .ov-card span { font-size: 10.5px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px; }
+    .ov-card b { font-size: 20px; font-weight: 900; color: var(--ink); }
+    .ov-card small { font-size: 10.5px; color: var(--ink-muted); display: block; margin-top: 3px; }
+
+    /* Stage content container */
+    .stage-content {
+      padding: 32px;
+      flex: 1;
+    }
+
+    .stage-heading {
+      margin-bottom: 24px;
+    }
+    .stage-badge {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    .stage-title { font-size: 22px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+    .stage-desc { font-size: 13px; color: var(--ink-muted); max-width: 720px; line-height: 1.6; }
+
+    /* Unified Upload Box */
+    .unified-upload {
+      border: 2px dashed #c6cdba;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, #fbfbf8, #f5f6f0);
+      padding: 44px 24px 36px;
+      text-align: center;
+      transition: all 0.2s;
+      cursor: pointer;
+      margin-bottom: 24px;
+    }
+    .unified-upload:hover, .unified-upload.dragover {
+      border-color: var(--primary);
+      background: #f2f7ef;
+    }
+    .drop-icon-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: #e8ede0;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+      font-size: 24px;
+    }
+    .unified-upload h3 { font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+    .unified-upload p { font-size: 13px; color: var(--ink-muted); margin-bottom: 20px; }
+    .upload-hint { font-size: 11px; color: var(--ink-dim); display: block; margin-top: 14px; }
+
+    /* File Status Pill inside step 1 */
+    .file-ready-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      background: #e8f5ec;
+      border: 1.5px solid #a7d7b5;
+      margin-bottom: 20px;
+    }
+    .file-ready-info { display: flex; align-items: center; gap: 14px; }
+    .file-ready-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800;
+    }
+    .file-ready-text b { font-size: 14px; color: var(--ink); display: block; }
+    .file-ready-text small { font-size: 11px; color: var(--primary); font-weight: 600; }
+
+    /* Preset section */
+    .preset-section {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      margin-bottom: 24px;
+    }
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .preset-card {
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fdfdfb;
+      text-align: left;
+    }
+    .preset-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.04); }
+    .preset-card.active { border-color: var(--primary); background: #f0f7f2; }
+    .preset-tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 99px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .tag-green { background: #dcfce7; color: #166534; }
+    .tag-amber { background: #fef3c7; color: #92400e; }
+    .tag-rose { background: #ffe4e6; color: #9f1239; }
+    .preset-card h4 { font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+    .preset-card p { font-size: 11px; color: var(--ink-muted); line-height: 1.5; }
+
+    /* Tables */
+    .table-container {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .table-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: #f9faf6;
+      border-bottom: 1px solid #e7ebe0;
+    }
+    .table-header-bar b { font-size: 13px; font-weight: 800; color: var(--ink); }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .data-table th {
+      background: #f4f5f0;
+      padding: 10px 16px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      border-bottom: 1px solid #e1e6d8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f2ea;
+      color: var(--ink);
+    }
+    .data-table tr:hover td { background: #f7f9f4; }
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 10.5px;
+      font-weight: 700;
+    }
+
+    .cell-input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #dce0d4;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--ink);
+      background: #ffffff;
+      transition: all 0.2s;
+    }
+    .cell-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+    }
+    .cell-input.error {
+      border-color: var(--accent-danger) !important;
+      background: #fff5f5 !important;
+    }
+    .cell-input-sm {
+      text-align: center;
+    }
+    .cell-delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--ink-dim);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .cell-delete-btn:hover {
+      color: var(--accent-danger);
+      background: #fee2e2;
+    }
+    .ai-progress-box {
+      background: #f8faf5;
+      border: 1.5px solid #d4deca;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .ai-progress-bar {
+      height: 8px;
+      border-radius: 99px;
+      background: #e5eadc;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .ai-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #2563eb);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Actions bottom bar inside stage */
+    .stage-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 20px;
+      border-top: 1px solid #e4e8dc;
+      margin-top: 30px;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(30, 35, 25, 0.55);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 640px;
+      padding: 28px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.15);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .modal-head h3 { font-size: 17px; font-weight: 800; color: var(--ink); }
+    .modal-head p { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid #dce0d4;
+      background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--ink-muted);
+    }
+    .modal-close:hover { background: #f5f6f0; color: var(--ink); }
+
+    /* Alert Boxes */
+    .alert {
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 12.5px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .alert-amber { background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }
+    .alert-rose { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
+    .alert-green { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+
+    /* Text Input */
+    .text-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid #d8dfcd;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .text-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12); }
+
+    /* Toast */
+    .toast-box {
+      position: fixed; top: 24px; right: 24px; z-index: 200;
+      background: #ffffff;
+      border: 1px solid #dce0d4;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+      max-width: 380px;
+      pointer-events: auto;
+      animation: toastAnim 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes toastAnim { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    @media (max-width: 992px) {
+      .intro-hero { grid-template-columns: 1fr; }
+      .intro-proof-bar { grid-template-columns: repeat(2, 1fr); }
+      .workspace-shell { flex-direction: column; }
+      .workspace-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e1e6d7; }
+      .overview-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-root"></div>
+
+  <!-- ============================================================
+       MÀN HÌNH 1: INTRO HERO SCREEN (PHONG CÁCH AN TÍN AGENT)
+       ============================================================ -->
+  <div id="screenIntro" class="screen active">
+    <div class="intro-shell">
+      
+      <!-- Top Navigation Bar -->
+      <header class="intro-nav">
+        <a class="brand" href="#intro">
+          <div class="brand-icon">TM</div>
+          <span>Thiên Minh<span class="brand-sub"> / RFQ Intelligence Agent</span></span>
+        </a>
+
+        <nav class="intro-menu">
+          <button type="button" class="intro-menu-btn" onclick="openModal('skillsModal')">✦ 4 Kỹ Năng AI</button>
+          <button type="button" class="intro-menu-btn" onclick="openModal('hitlModal')">🛑 Chốt Chặn HITL</button>
+          <button type="button" class="intro-menu-btn" onclick="openModal('pipelineModal')">📖 Sơ Đồ Pipeline</button>
+        </nav>
+
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button type="button" class="btn btn-light" onclick="loadSampleByApi('vietfin')">✦ Dùng Mẫu VietFin</button>
+          <button type="button" class="btn btn-primary" onclick="showScreen('screenWorkspace')">Vào Không Gian Làm Việc ➔</button>
+        </div>
+      </header>
+
+      <!-- Hero Main 2 Cột -->
+      <div class="intro-hero">
+        <div class="intro-left">
+          <div class="intro-badge">
+            <span class="badge-dot"></span>
+            <span>HỆ THỐNG THẨM ĐỊNH YÊU CẦU CHÀO GIÁ TỰ ĐỘNG</span>
+          </div>
+
+          <h1 class="intro-title">
+            Tự động hóa đánh giá<br>
+            <span class="intro-title-accent">Hồ sơ chào giá dự án (RFQ)</span>
+          </h1>
+
+          <p class="intro-desc">
+            Hệ thống AI Agent 4 cấp độ kết hợp tầng chuẩn hóa dữ liệu <b>Canonical Staging</b>, tự động xử lý hơn 20 bộ hồ sơ mỗi tháng. Bóc tách điều kiện bắt buộc, khớp danh mục giải pháp, kiểm tra lịch thi công và kích hoạt chốt chặn phê duyệt ngoại lệ (Human-in-the-Loop).
+          </p>
+
+          <div class="intro-actions">
+            <button type="button" class="btn btn-primary" style="padding:14px 32px;font-size:14px;" onclick="showScreen('screenWorkspace')">
+              <span>🚀 Bắt đầu thẩm định ngay</span>
+            </button>
+            <button type="button" class="btn btn-light" style="padding:14px 24px;font-size:14px;" onclick="loadSampleByApi('alpha')">
+              <span>✦ Nạp hồ sơ mẫu AlphaTech</span>
+            </button>
+          </div>
+
+          <!-- Dải 4 Số liệu bảo chứng (Proof Bar) -->
+          <div class="intro-proof-bar">
+            <div class="proof-item" onclick="openModal('skillsModal')" style="cursor:pointer;">
+              <span class="proof-icon">⚡</span>
+              <b>20+ RFQ/tháng</b>
+              <small>Tự động hóa toàn diện ↗</small>
+            </div>
+            <div class="proof-item" onclick="openModal('hitlModal')" style="cursor:pointer;">
+              <span class="proof-icon">🛑</span>
+              <b>Chốt chặn HITL</b>
+              <small>Khóa xuất chào giá khi lỗi ↗</small>
+            </div>
+            <div class="proof-item" onclick="openModal('pipelineModal')" style="cursor:pointer;">
+              <span class="proof-icon">🎯</span>
+              <b>13 Mã Giải Pháp</b>
+              <small>Catalog Switch, AP, FW ↗</small>
+            </div>
+            <div class="proof-item" onclick="showScreen('screenWorkspace')" style="cursor:pointer;">
+              <span class="proof-icon">📄</span>
+              <b>4 Bộ File Word</b>
+              <small>Tự động xuất .DOCX chuẩn ↗</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột Phải: Preview Thẻ 3D -->
+        <div class="intro-preview-card">
+          <div class="preview-header">
+            <div>
+              <b style="font-size:14px;color:var(--ink);">Luồng Xử Lý AI Agent</b>
+              <small style="color:var(--ink-muted);display:block;margin-top:2px;">Tích hợp Canonical Staging & HITL</small>
+            </div>
+            <span class="preview-chip">v2.5 ACTIVE</span>
+          </div>
+
+          <div class="pipeline-preview-list">
+            <div class="pipeline-p-item">
+              <span class="p-step-num">01</span>
+              <div>
+                <b>Tiếp nhận đa nguồn & Chuẩn hóa</b>
+                <small>Google Sheets, CSV, DOCX qua Canonical Staging</small>
+              </div>
+            </div>
+            <div class="pipeline-p-item">
+              <span class="p-step-num">02</span>
+              <div>
+                <b>Duyệt dữ liệu làm sạch (HITL 1)</b>
+                <small>Rà soát danh mục thiết bị, số lượng, ngân sách trần</small>
+              </div>
+            </div>
+            <div class="pipeline-p-item">
+              <span class="p-step-num">03</span>
+              <div>
+                <b>Phân tích kỹ thuật & Tính giá</b>
+                <small>Khớp 13 mã chuẩn, tính lead-time, 4 Tier chiết khấu</small>
+              </div>
+            </div>
+            <div class="pipeline-p-item">
+              <span class="p-step-num">04</span>
+              <div>
+                <b>Phê duyệt cuối & Bàn giao (HITL 2)</b>
+                <small>Hội đồng duyệt ngoại lệ, xuất 4 bộ tài liệu .DOCX</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MÀN HÌNH 2: WORKSPACE (KHÔNG GIAN LÀM VIỆC THEO 4 BƯỚC)
+       ============================================================ -->
+  <div id="screenWorkspace" class="screen">
+    <div class="workspace-shell">
+      
+      <!-- Cột Trái: Sidebar Điều Hướng 4 Bước -->
+      <aside class="workspace-sidebar">
+        <a class="brand" href="#intro" onclick="showScreen('screenIntro')">
+          <div class="brand-icon">TM</div>
+          <span>Thiên Minh<span class="brand-sub"> / Workspace</span></span>
+        </a>
+
+        <div class="sidebar-section-title">QUY TRÌNH THẨM ĐỊNH</div>
+        
+        <nav class="steps">
+          <!-- Bước 1 -->
+          <button type="button" class="step-btn active" id="stepBtn1" onclick="setStep(1)">
+            <span class="step-num">01</span>
+            <div class="step-info">
+              <b>Nạp dữ liệu</b>
+              <small>Tải & nhận diện tệp mới</small>
+            </div>
+          </button>
+          
+          <!-- Bước 2 -->
+          <button type="button" class="step-btn" id="stepBtn2" onclick="setStep(2)">
+            <span class="step-num">02</span>
+            <div class="step-info">
+              <b>Duyệt làm sạch <span class="hitl-pill">HITL</span></b>
+              <small>Kiểm tra bảng chuẩn hóa</small>
+            </div>
+          </button>
+          
+          <!-- Bước 3 -->
+          <button type="button" class="step-btn" id="stepBtn3" onclick="setStep(3)">
+            <span class="step-num">03</span>
+            <div class="step-info">
+              <b>Phân tích AI</b>
+              <small>Catalog, lịch & chiết khấu</small>
+            </div>
+          </button>
+          
+          <!-- Bước 4 -->
+          <button type="button" class="step-btn" id="stepBtn4" onclick="setStep(4)">
+            <span class="step-num">04</span>
+            <div class="step-info">
+              <b>Duyệt kết quả <span class="hitl-pill">HITL</span></b>
+              <small>Phê duyệt & xuất hồ sơ</small>
+            </div>
+          </button>
+        </nav>
+
+        <div class="sidebar-section-title">CÔNG CỤ TIỆN ÍCH</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <button class="intro-menu-btn" style="text-align:left;padding:8px 12px;border-radius:8px;" onclick="openModal('chatModal')">💬 Trợ lý Gemini 3.5 AI</button>
+          <button class="intro-menu-btn" style="text-align:left;padding:8px 12px;border-radius:8px;" onclick="openModal('pipelineModal')">📖 Sơ đồ Pipeline</button>
+          <button class="intro-menu-btn" style="text-align:left;padding:8px 12px;border-radius:8px;" onclick="resetWorkspaceNewSession()">🔄 Nạp Hồ Sơ Hoàn Toàn Mới</button>
+        </div>
+
+        <div class="sidebar-bottom">
+          <button class="btn btn-primary" onclick="triggerFileInput()" style="width:100%;">Tải Tệp Mới</button>
+          <button class="btn btn-light" onclick="loadSampleByApi('alpha')" style="width:100%;">✦ Dữ Liệu AlphaTech</button>
+          <button class="btn btn-quiet" onclick="showScreen('screenIntro')" style="width:100%;font-size:12px;">← Màn hình giới thiệu</button>
+        </div>
+      </aside>
+
+      <!-- Khối Phải: Không Gian Làm Việc Chính -->
+      <main class="workspace-main">
+        
+        <!-- Header Topbar -->
+        <header class="workspace-topbar">
+          <div class="topbar-title">
+            <h1 id="stageTitleTxt">01 / Nạp Dữ Liệu Đầu Vào</h1>
+            <p id="stageSubTxt">Tiếp nhận hồ sơ chào giá qua Google Sheets, CSV hoặc DOCX</p>
+          </div>
+          <div class="topbar-actions">
+            <span class="online-pill"><span class="online-dot"></span> Online Workspace</span>
+            <button class="btn btn-light" style="font-size:12px;padding:6px 14px;" onclick="showScreen('screenIntro')">✦ Giới thiệu</button>
+          </div>
+        </header>
+
+        <!-- Thống Kê Phiên Làm Việc (Overview Strip) -->
+        <section class="overview-strip">
+          <div class="ov-card">
+            <span>Hồ Sơ Đang Xem</span>
+            <b id="ovRfqCode">— Chưa nạp tệp —</b>
+            <small id="ovCustomer">Vui lòng tải tệp để bắt đầu</small>
+          </div>
+          <div class="ov-card">
+            <span>Trạng Thái Kiểm Định</span>
+            <b id="ovStatus" style="color:var(--ink-dim);">CHỜ DỮ LIỆU</b>
+            <small id="ovStatusNote">Chưa qua phân tích</small>
+          </div>
+          <div class="ov-card">
+            <span>Dự Toán Thanh Toán</span>
+            <b id="ovTotalBalance">0 VNĐ</b>
+            <small id="ovVatNote">Chưa tính VAT</small>
+          </div>
+          <div class="ov-card">
+            <span>Biên Lợi Nhuận Gộp</span>
+            <b id="ovMargin" style="color:var(--ink-dim);">0.0%</b>
+            <small id="ovMarginNote">Chưa có dữ liệu chi phí</small>
+          </div>
+        </section>
+
+        <!-- Nội Dung Từng Bước (Stage Content) -->
+        <div class="stage-content">
+          
+          <!-- ================= BƯỚC 1: NẠP DỮ LIỆU ================= -->
+          <div id="stageStep1" class="stage-pane">
+            <div class="stage-heading">
+              <span class="stage-badge">BƯỚC 01 · ĐẦU VÀO</span>
+              <h2 class="stage-title">Bắt Đầu Từ Tệp Mới Hoàn Toàn</h2>
+              <p class="stage-desc">Mỗi khi bạn tải lên tệp mới (DOCX, CSV) hoặc nhập link Google Sheets, hệ thống sẽ <b>xóa sạch phiên làm việc cũ</b>, gửi tệp lên backend để AI Agent đọc, làm sạch và tự động trích xuất lại từ đầu.</p>
+            </div>
+
+            <!-- Banner tệp hiện tại (nếu đã nạp) -->
+            <div id="fileReadyBanner" class="file-ready-banner" style="display:none;">
+              <div class="file-ready-info">
+                <div class="file-ready-icon" id="fileReadyIcon">📄</div>
+                <div class="file-ready-text">
+                  <b id="fileReadyName">Tệp_Hồ_Sơ.docx</b>
+                  <small id="fileReadySub">Đã tải lên và gửi sang AI Agent xử lý thành công</small>
+                </div>
+              </div>
+              <button class="btn btn-light" onclick="resetWorkspaceNewSession()" style="font-size:11px;padding:6px 14px;">Bỏ tệp này & Tải lại ✕</button>
+            </div>
+
+            <!-- Drag & Drop Upload Zone Thực Tế -->
+            <div class="unified-upload" id="uploadZone" onclick="triggerFileInput()">
+              <input type="file" id="fileInputElem" accept=".docx,.csv,.xlsx" style="display:none;" onchange="handleFileSelected(event)">
+              <div class="drop-icon-circle">📂</div>
+              <h3>Kéo thả tệp vào đây hoặc Bấm để tải lên tệp mới</h3>
+              <p>Hỗ trợ file Word RFQ (.docx), bảng Excel (.csv, .xlsx).<br>Hệ thống tự động đọc từng dòng, làm sạch khoảng trắng và gán mã hồ sơ mới.</p>
+              <button type="button" class="btn btn-primary" onclick="event.stopPropagation(); triggerFileInput();">Chọn tệp từ máy tính ↗</button>
+              <span class="upload-hint">Tệp tải lên được gửi trực tiếp đến backend /api/upload-and-analyze để xử lý</span>
+            </div>
+
+            <!-- Nạp Google Sheets URL Thực Tế -->
+            <div class="preset-section">
+              <b style="font-size:13px;color:var(--ink);">Hoặc Dán Đường Dẫn Google Sheets Trực Tuyến:</b>
+              <div style="display:flex;gap:10px;margin-top:10px;">
+                <input type="text" id="gsheetInput" class="text-input" placeholder="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit...">
+                <button type="button" class="btn btn-primary" onclick="handleGSheetSubmit()" style="white-space:nowrap;">Tải & Phân Tích ➔</button>
+              </div>
+            </div>
+
+            <!-- Chọn Nhanh 3 Hồ Sơ Mẫu Thực Nghiệm -->
+            <div class="preset-section">
+              <b style="font-size:13px;color:var(--ink);">Hoặc Thử Nghiệm Nhanh Với 3 Bộ Hồ Sơ Mẫu Chuẩn Có Sẵn Trong Dự Án:</b>
+              <div class="preset-grid">
+                <div class="preset-card" id="cardPresetAlpha" onclick="loadSampleByApi('alpha')">
+                  <span class="preset-tag tag-green">1. ĐẠT CHUẨN 100%</span>
+                  <h4>AlphaTech Việt Nam</h4>
+                  <p>Mạng LAN & Wi-Fi 6 văn phòng, ngân sách 450M, tiến độ 12 ngày, chiết khấu 6% trong hạn mức.</p>
+                </div>
+                <div class="preset-card" id="cardPresetVietfin" onclick="loadSampleByApi('vietfin')">
+                  <span class="preset-tag tag-amber">2. CẦN CHUYỂN DUYỆT</span>
+                  <h4>Ngân Hàng VietFin Bank</h4>
+                  <p>Core DC & An ninh, có thiết bị DDoS ngoài catalog, chiết khấu 14%, lịch gấp 15 ngày.</p>
+                </div>
+                <div class="preset-card" id="cardPresetAnkhang" onclick="loadSampleByApi('ankhang')">
+                  <span class="preset-tag tag-rose">3. ĐỀ XUẤT LOẠI BỎ</span>
+                  <h4>BV ĐKQT An Khang</h4>
+                  <p>Yêu cầu cấu hình &gt;1 tỷ nhưng ngân sách chỉ 50M (lỗ nặng), đòi hoàn thành trong 3 ngày.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="stage-footer">
+              <span style="font-size:12px;color:var(--ink-muted);">Dữ liệu được chuẩn hóa tại Canonical Staging Layer</span>
+              <button type="button" class="btn btn-primary" id="btnNextStep2" onclick="setStep(2)" disabled>Chuyển sang Bước 2: Duyệt Làm Sạch ➔</button>
+            </div>
+          </div>
+
+          <!-- ================= BƯỚC 2: DUYỆT LÀM SẠCH (HITL) ================= -->
+          <div id="stageStep2" class="stage-pane" style="display:none;">
+            <div class="stage-heading">
+              <span class="stage-badge">BƯỚC 02 · CANONICAL STAGING & HITL 1</span>
+              <h2 class="stage-title">Bản Làm Sạch & Duyệt Chuẩn Hóa Dữ Liệu</h2>
+              <p class="stage-desc">AI Agent đã đưa dữ liệu qua tầng <b>Canonical Staging</b>: loại bỏ khoảng trắng rác, ép kiểu số lượng, nhận diện thông số kỹ thuật. Bạn có thể <b>chỉnh sửa trực tiếp từng dòng</b> hoặc thêm/xóa hạng mục trước khi chạy phân tích AI.</p>
+            </div>
+
+            <div id="cleanAlertBox" class="alert alert-green" style="margin-bottom:18px;">
+              <span id="cleanAlertIcon">✓</span>
+              <div id="cleanAlertContent">
+                <b>Dữ liệu đã được làm sạch thành công:</b> Đã chuẩn hóa danh mục thiết bị. Sẵn sàng phân tích.
+              </div>
+            </div>
+
+            <!-- Bảng Dữ Liệu Đã Làm Sạch (Table) -->
+            <div class="table-container">
+              <div class="table-header-bar">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <b>Bảng Danh Sách Hạng Mục Sau Khi Làm Sạch</b>
+                  <span id="cleanTableRowCount" style="font-size:11px;color:var(--ink-muted);background:#edf1e6;padding:2px 8px;border-radius:99px;">0 hạng mục</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button type="button" class="btn btn-light" style="font-size:11px;padding:6px 12px;" onclick="addCleanedRow()">+ Thêm Hạng Mục</button>
+                  <button type="button" class="btn btn-light" style="font-size:11px;padding:6px 12px;" onclick="exportCleanedCsv()">↓ Xuất CSV Sạch</button>
+                </div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table" id="cleanedDataTable">
+                  <thead>
+                    <tr>
+                      <th style="width:45px;">STT</th>
+                      <th>Tên Thiết Bị / Hạng Mục (Có Thể Sửa)</th>
+                      <th style="width:105px;">Số Lượng</th>
+                      <th style="width:85px;">Đơn Vị</th>
+                      <th>Thông Số Bắt Buộc & Ghi Chú</th>
+                      <th style="width:130px;">Trạng Thái</th>
+                      <th style="width:45px;text-align:center;">Xóa</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cleanedDataTbody">
+                    <tr>
+                      <td colspan="7" style="text-align:center;padding:30px;color:var(--ink-muted);">Chưa có dữ liệu. Vui lòng quay lại Bước 1 để tải tệp mới lên.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="stage-footer">
+              <button type="button" class="btn btn-quiet" onclick="setStep(1)">← Quay lại Nạp tệp mới</button>
+              <div style="display:flex;gap:10px;">
+                <button type="button" class="btn btn-primary" id="btnExecuteAi" onclick="executeAiAnalysis()">
+                  <span>✦ Xác Nhận & Chạy Phân Tích AI (Bước 3) ➔</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= BƯỚC 3: PHÂN TÍCH AI AGENT ================= -->
+          <div id="stageStep3" class="stage-pane" style="display:none;">
+            <div class="stage-heading">
+              <span class="stage-badge">BƯỚC 03 · AI AGENT ENGINE</span>
+              <h2 class="stage-title">Kết Quả Đối Chiếu Kỹ Thuật & Tính Giá Thương Mại</h2>
+              <p class="stage-desc">AI Agent đã đối chiếu 13 mã giải pháp catalog, kiểm tra tiến độ giao hàng và áp dụng 4 Tier chiết khấu. Rà soát 5 cờ kích hoạt chuyển duyệt (Escalation Triggers).</p>
+            </div>
+
+            <!-- Khối Progress Animation khi chạy phân tích -->
+            <div id="aiProgressBox" class="ai-progress-box" style="display:none;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <b id="aiProgressTitle" style="font-size:13px;color:var(--primary);">Đang chạy AI Phân tích 4 Cấp Độ...</b>
+                <span id="aiProgressPct" style="font-size:12px;font-weight:700;color:var(--ink-muted);">0%</span>
+              </div>
+              <div class="ai-progress-bar">
+                <div id="aiProgressFill" class="ai-progress-fill" style="width:0%;"></div>
+              </div>
+              <div id="aiProgressStepDesc" style="font-size:11.5px;color:var(--ink-muted);">Đang khởi tạo engine...</div>
+            </div>
+
+            <!-- 3 Khối Card Kết Quả Phân Tích (2a, 2b, 2c) -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+              <div class="ov-card" style="border-left:4px solid var(--accent-purple);">
+                <span style="color:var(--accent-purple);">2a. Trích Xuất & Phân Loại</span>
+                <b id="pStatExtraction">—</b>
+                <small id="pStatExtractionSub">Chờ chạy phân tích</small>
+              </div>
+              <div class="ov-card" style="border-left:4px solid var(--accent-blue);">
+                <span style="color:var(--accent-blue);">2b. Khớp Catalog & Lịch</span>
+                <b id="pStatSchedule">—</b>
+                <small id="pStatScheduleSub">Chờ chạy phân tích</small>
+              </div>
+              <div class="ov-card" style="border-left:4px solid var(--primary);">
+                <span style="color:var(--primary);">2c. Giá, Chiết Khấu & COGS</span>
+                <b id="pStatPricing">—</b>
+                <small id="pStatPricingSub">Chờ chạy phân tích</small>
+              </div>
+            </div>
+
+            <!-- Bảng Ma Trận Đáp Ứng Yêu Cầu (Requirements Matrix) -->
+            <div class="table-container">
+              <div class="table-header-bar">
+                <b>Bảng Ma Trận Đáp Ứng Tính Năng & Đơn Giá Đề Xuất</b>
+                <span style="font-size:11px;color:var(--ink-muted);">Đối chiếu Catalog 13 mã chuẩn</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Mã Hạng Mục</th>
+                      <th>Giải Pháp Đề Xuất</th>
+                      <th>Độ Đáp Ứng</th>
+                      <th>Thời Gian Giao</th>
+                      <th>Đơn Giá Niêm Yết</th>
+                      <th>Giá Sau Chiết Khấu</th>
+                      <th>Đánh Giá Rủi Ro</th>
+                    </tr>
+                  </thead>
+                  <tbody id="matrixDataTbody">
+                    <tr>
+                      <td colspan="7" style="text-align:center;padding:30px;color:var(--ink-muted);">Chưa có kết quả ma trận. Vui lòng hoàn tất nạp dữ liệu ở Bước 1.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="stage-footer">
+              <button type="button" class="btn btn-quiet" onclick="setStep(2)">← Quay lại Làm sạch</button>
+              <button type="button" class="btn btn-primary" onclick="setStep(4)">Chuyển sang Bước 4: Duyệt Cuối & Xuất Hồ Sơ ➔</button>
+            </div>
+          </div>
+
+          <!-- ================= BƯỚC 4: DUYỆT CUỐI & BÀN GIAO (HITL 2) ================= -->
+          <div id="stageStep4" class="stage-pane" style="display:none;">
+            <div class="stage-heading">
+              <span class="stage-badge">BƯỚC 04 · QUYẾT ĐỊNH CON NGƯỜI & BÀN GIAO</span>
+              <h2 class="stage-title">Phê Duyệt Phương Án & Xuất 4 Bộ Tài Liệu .DOCX</h2>
+              <p class="stage-desc">Trưởng phòng Kinh doanh và Ban Giám Đốc rà soát lần cuối. Kích hoạt phê duyệt phương án, họp hội đồng chuyển duyệt hoặc từ chối tham gia dự án.</p>
+            </div>
+
+            <!-- Ý Kiến Hội Đồng Thẩm Định -->
+            <div class="preset-section" style="margin-bottom:24px;">
+              <b style="font-size:13px;color:var(--ink);">Ý Kiến Đánh Giá Của Các Bộ Phận:</b>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:12px;">
+                <div style="background:#f9faf7;padding:14px;border-radius:12px;border:1px solid #e2e6da;">
+                  <span style="font-size:10px;font-weight:800;color:var(--primary);display:block;margin-bottom:4px;">TRƯỞNG PHÒNG KD</span>
+                  <p id="msgSales" style="font-size:12px;color:var(--ink-muted);line-height:1.5;">Chưa có nhận xét.</p>
+                </div>
+                <div style="background:#f9faf7;padding:14px;border-radius:12px;border:1px solid #e2e6da;">
+                  <span style="font-size:10px;font-weight:800;color:#92400e;display:block;margin-bottom:4px;">TỔNG GIÁM ĐỐC</span>
+                  <p id="msgCeo" style="font-size:12px;color:var(--ink-muted);line-height:1.5;">Chưa có nhận xét.</p>
+                </div>
+                <div style="background:#f9faf7;padding:14px;border-radius:12px;border:1px solid #e2e6da;">
+                  <span style="font-size:10px;font-weight:800;color:#1e40af;display:block;margin-bottom:4px;">KỸ THUẬT TRƯỞNG</span>
+                  <p id="msgTech" style="font-size:12px;color:var(--ink-muted);line-height:1.5;">Chưa có nhận xét.</p>
+                </div>
+              </div>
+
+              <!-- Nút Thao Tác Quyết Định -->
+              <div style="display:flex;gap:12px;margin-top:18px;align-items:center;">
+                <button type="button" class="btn btn-primary" onclick="handleDecision('APPROVE_SCHEME')">✓ Phê Duyệt Phương Án (Pass)</button>
+                <button type="button" class="btn btn-light" style="color:#92400e;border-color:#fde68a;background:#fefce8;" onclick="openModal('waiverModal')">👥 Họp Hội Đồng Chuyển Duyệt</button>
+                <button type="button" class="btn btn-light" style="color:#9f1239;border-color:#fecdd3;background:#fff1f2;" onclick="handleDecision('RECOMMEND_REJECTION')">✕ Đề Xuất Loại Bỏ</button>
+              </div>
+            </div>
+
+            <!-- Bàn Giao 4 Bộ File Word .DOCX -->
+            <div class="preset-section">
+              <b style="font-size:13px;color:var(--ink);">Tải Về 4 Bộ File Word Chính Thức Sẵn Sàng Ký Đóng Dấu:</b>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px;">
+                <div class="preset-card">
+                  <span class="preset-tag tag-green">TÀI LIỆU 1</span>
+                  <h4>Bảng Đáp Ứng Yêu Cầu</h4>
+                  <p>Ma trận đối chiếu tính năng kỹ thuật và cam kết dịch vụ.</p>
+                  <a id="btnDlMatrix" href="/api/download/requirements_matrix" class="btn btn-light" style="width:100%;font-size:11px;margin-top:10px;padding:6px;">↓ Tải file .DOCX</a>
+                </div>
+                <div class="preset-card">
+                  <span class="preset-tag tag-green">TÀI LIỆU 2</span>
+                  <h4>Bản Chào Giá Thương Mại</h4>
+                  <p>Bảng chào giá chính thức gồm VAT, chiết khấu và điều khoản.</p>
+                  <a id="btnDlQuotation" href="/api/download/official_quotation" class="btn btn-light" style="width:100%;font-size:11px;margin-top:10px;padding:6px;">↓ Tải file .DOCX</a>
+                </div>
+                <div class="preset-card">
+                  <span class="preset-tag tag-amber">TÀI LIỆU 3</span>
+                  <h4>Phiếu Chuyển Duyệt</h4>
+                  <p>Biên bản họp Hội đồng và chữ ký phê duyệt của Ban Giám Đốc.</p>
+                  <a id="btnDlApproval" href="/api/download/approval_form" class="btn btn-light" style="width:100%;font-size:11px;margin-top:10px;padding:6px;">↓ Tải file .DOCX</a>
+                </div>
+                <div class="preset-card">
+                  <span class="preset-tag tag-green">TÀI LIỆU 4</span>
+                  <h4>Hồ Sơ Đề Xuất KT</h4>
+                  <p>Thuyết minh giải pháp mạng, cam kết SLA 24/7 và tiến độ.</p>
+                  <button type="button" class="btn btn-light" onclick="showToast('Hồ Sơ Kỹ Thuật','Đã tích hợp đầy đủ trong gói thầu!','success')" style="width:100%;font-size:11px;margin-top:10px;padding:6px;">Xem Hồ Sơ</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="stage-footer">
+              <button type="button" class="btn btn-quiet" onclick="setStep(3)">← Quay lại Phân tích</button>
+              <button type="button" class="btn btn-primary" onclick="showScreen('screenIntro')">Hoàn Tất & Về Trang Giới Thiệu ➔</button>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODALS: CÁC HỘP THOẠI CHI TIẾT
+       ============================================================ -->
+  
+  <!-- MODAL: 4 KỸ NĂNG XỬ LÝ AI AGENT -->
+  <div id="skillsModal" class="modal-backdrop" style="display:none;" onclick="if(event.target===this)closeModal('skillsModal')">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3>✦ 4 Kỹ Năng Nghiệp Vụ Của AI Agent</h3>
+          <p>Thiên Minh Networks RFQ Intelligence Engine</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('skillsModal')">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="padding:12px 14px;border-radius:10px;background:#f8faf6;border:1px solid #e1e6d7;">
+          <b style="font-size:13px;color:var(--primary);display:block;margin-bottom:3px;">Skill 1: Extraction & Categorization (Trích xuất & Phân loại)</b>
+          <p style="font-size:11.5px;color:var(--ink-muted);line-height:1.5;">Bóc tách trần ngân sách, hạn chót bàn giao, SLA 24/7 và phân loại hồ sơ vào 3 nhóm giải pháp (LAN/WiFi văn phòng, Core Data Center, Mạng công nghiệp).</p>
+        </div>
+        <div style="padding:12px 14px;border-radius:10px;background:#f8faf6;border:1px solid #e1e6d7;">
+          <b style="font-size:13px;color:var(--primary);display:block;margin-bottom:3px;">Skill 2: Solution & Schedule Matching (Khớp Danh mục & Lịch)</b>
+          <p style="font-size:11.5px;color:var(--ink-muted);line-height:1.5;">Đối chiếu chính xác thông số thiết bị với 13 mã chuẩn công ty. Tính toán tổng lead-time nhập khẩu và ngày thi công của đội ngũ kỹ sư so với deadline khách hàng.</p>
+        </div>
+        <div style="padding:12px 14px;border-radius:10px;background:#f8faf6;border:1px solid #e1e6d7;">
+          <b style="font-size:13px;color:var(--primary);display:block;margin-bottom:3px;">Skill 3: Pricing & Tier Discounts (Tính giá, Chiết khấu & COGS)</b>
+          <p style="font-size:11.5px;color:var(--ink-muted);line-height:1.5;">Tự động áp dụng 4 Tier chiết khấu theo quy mô doanh số. Tính giá vốn hàng bán (COGS = 68%), biên lợi nhuận gộp và cảnh báo thâm hụt tài chính nếu ngân sách &lt; 70% COGS.</p>
+        </div>
+        <div style="padding:12px 14px;border-radius:10px;background:#f8faf6;border:1px solid #e1e6d7;">
+          <b style="font-size:13px;color:var(--primary);display:block;margin-bottom:3px;">Skill 4: Escalation & Draft Output (Dự thảo Ma trận & Phiếu duyệt)</b>
+          <p style="font-size:11.5px;color:var(--ink-muted);line-height:1.5;">Lập Bảng ma trận đáp ứng yêu cầu và tự động sinh Phiếu chuyển duyệt (PCD) khi phát hiện các vi phạm quy chế thương mại.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CHỐT CHẶN HITL (HUMAN-IN-THE-LOOP) -->
+  <div id="hitlModal" class="modal-backdrop" style="display:none;" onclick="if(event.target===this)closeModal('hitlModal')">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3>🛑 5 Chốt Chặn Chuyển Duyệt Bắt Buộc (HITL)</h3>
+          <p>Quy chế kiểm soát rủi ro thương mại & kỹ thuật</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('hitlModal')">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;">
+        <div class="alert alert-amber">
+          <b>1. Chiết khấu vượt trần:</b> Yêu cầu chiết khấu cao hơn mức trần theo phân hạng giá trị (Tier 1: 5%, Tier 2: 8%, Tier 3: 12%, Tier 4: 15%) ➔ Phải chuyển TGĐ duyệt.
+        </div>
+        <div class="alert alert-amber">
+          <b>2. Thiết bị ngoài danh mục:</b> Dự án đòi hỏi sản phẩm công ty không cung cấp (ví dụ: Firewall inline DDoS) ➔ Bắt buộc xác minh đối tác OEM trước khi chào.
+        </div>
+        <div class="alert alert-amber">
+          <b>3. Tiến độ gấp:</b> Thời gian giao hàng hoặc thi công ngắn hơn tổng lead-time cần thiết ➔ Bắt buộc Kỹ thuật trưởng xác nhận năng lực tăng ca.
+        </div>
+        <div class="alert alert-amber">
+          <b>4. Điều kiện cam kết bảo trì gắt gao:</b> SLA phản hồi dưới 1 giờ hoặc phạt tiến độ &gt; 5% ➔ Bắt buộc họp Hội đồng duyệt rủi ro.
+        </div>
+        <div class="alert alert-rose">
+          <b>5. Tử huyệt thương mại:</b> Ngân sách khách hàng &lt; 70% giá vốn COGS ➔ Hệ thống kích hoạt đề xuất Loại bỏ hồ sơ, không tham gia để tránh thua lỗ.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SƠ ĐỒ PIPELINE -->
+  <div id="pipelineModal" class="modal-backdrop" style="display:none;" onclick="if(event.target===this)closeModal('pipelineModal')">
+    <div class="modal-box" style="max-width:800px;">
+      <div class="modal-head">
+        <div>
+          <h3>📖 Sơ Đồ Pipeline: Sheets → Cleaning → Process → Verify</h3>
+          <p>Kiến trúc luồng xử lý và các vòng lặp hoàn trả khi người dùng nhập lỗi</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('pipelineModal')">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:12.5px;">
+        <div style="padding:14px;border-radius:12px;background:#f2f7ec;border:1px solid #d4e0c8;">
+          <b style="color:var(--primary);">BƯỚC 1: TIẾP NHẬN ĐẦU VÀO</b>
+          <p style="color:var(--ink-muted);margin-top:4px;">Nhận link Google Sheets (chuyển /export?format=csv), file Word .docx, bảng .csv. Tự động kiểm tra tính hợp lệ.</p>
+        </div>
+        <div style="padding:14px;border-radius:12px;background:#fefce8;border:1px solid #fef08a;">
+          <b style="color:#854d0e;">BƯỚC 2: CLEANING & HOÀN TRẢ LỖI (ERROR LOOP)</b>
+          <p style="color:var(--ink-muted);margin-top:4px;">Nếu link Sheets chưa share quyền xem, file Word thiếu bảng thiết bị hoặc file CSV trống ➔ <strong>Hệ thống hoàn trả về Bước 1 kèm Toast cảnh báo</strong>.</p>
+        </div>
+        <div style="padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0;">
+          <b style="color:#166534;">BƯỚC 3: AI MULTI-STEP PROCESS</b>
+          <p style="color:var(--ink-muted);margin-top:4px;">2a Trích xuất ➔ 2b Đối chiếu Catalog & Lịch ➔ 2c Tính giá & Chiết khấu ➔ 2d Sinh ma trận đáp ứng.</p>
+        </div>
+        <div style="padding:14px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe;">
+          <b style="color:#1e40af;">BƯỚC 4: VERIFICATION & EXPORT</b>
+          <p style="color:var(--ink-muted);margin-top:4px;">Con người duyệt (Pass) ➔ Tự động sinh và xuất 4 file Word .DOCX chuẩn doanh nghiệp.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TRỢ LÝ GEMINI AI CHAT -->
+  <div id="chatModal" class="modal-backdrop" style="display:none;" onclick="if(event.target===this)closeModal('chatModal')">
+    <div class="modal-box" style="max-width:700px;display:flex;flex-direction:column;height:80vh;">
+      <div class="modal-head" style="margin-bottom:12px;">
+        <div>
+          <h3>💬 Trợ Lý Gemini 3.5 AI</h3>
+          <p>Hỏi đáp thông minh về điều kiện kỹ thuật & đàm phán hợp đồng</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('chatModal')">✕</button>
+      </div>
+      <div id="chatContainer" style="flex:1;overflow-y:auto;padding:14px;background:#f7f8f4;border-radius:12px;border:1px solid #e1e6d7;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <div class="brand-icon" style="width:28px;height:28px;font-size:10px;">TM</div>
+          <div style="background:#fff;padding:10px 14px;border-radius:12px;font-size:12.5px;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,0.03);line-height:1.6;">
+            Xin chào! Tôi là Trợ lý AI Thiên Minh Networks. Tôi có thể tư vấn giải pháp kỹ thuật, phân tích biên lợi nhuận hoặc đưa ra đối sách đàm phán kéo dài thời hạn dự án. Bạn cần hỗ trợ gì?
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <input type="text" id="chatInput" class="text-input" placeholder="Hỏi AI: 'Làm thế nào để đàm phán giảm chiết khấu xuống 8%?'..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+        <button type="button" class="btn btn-primary" onclick="sendChatMessage()">Gửi ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HỌP HỘI ĐỒNG (WAIVER) -->
+  <div id="waiverModal" class="modal-backdrop" style="display:none;" onclick="if(event.target===this)closeModal('waiverModal')">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-head">
+        <div>
+          <h3>Họp Hội Đồng Chuyển Duyệt</h3>
+          <p>Ký biên bản chấp thuận ngoại lệ (Waiver)</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('waiverModal')">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--ink-muted);line-height:1.6;margin-bottom:16px;">
+        Hội đồng gồm: <strong>Lê Hoàng Minh (Tổng Giám Đốc)</strong>, <strong>Trần Nam (Trưởng phòng KD)</strong> và <strong>Nguyễn Văn Kỹ (Kỹ thuật trưởng)</strong>.
+      </div>
+      <label style="font-size:11px;font-weight:700;display:block;margin-bottom:6px;color:var(--ink);">Điều chỉnh mức chiết khấu thông qua (%):</label>
+      <input type="number" id="waiverDiscountInput" class="text-input" placeholder="Ví dụ: 10" style="margin-bottom:16px;">
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-light" onclick="closeModal('waiverModal')" style="flex:1;">Hủy</button>
+        <button class="btn btn-primary" onclick="confirmWaiver()" style="flex:1;">Ký Duyệt Ngoại Lệ ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       JAVASCRIPT: KẾT NỐI API THỰC TẾ & XỬ LÝ DỮ LIỆU TỪNG BƯỚC
+       ============================================================ -->
+  <script>
+    // State quản lý phiên làm việc hiện tại
+    let currentSessionState = null;
+    let currentCleaningSession = null;
+    let currentItemsList = [];
+    let currentStep = 1;
+
+    // Chuyển màn hình (Intro <-> Workspace)
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // Reset trắng toàn bộ workspace để bắt đầu phiên mới
+    function resetWorkspaceNewSession() {
+      currentSessionState = null;
+      currentCleaningSession = null;
+      currentItemsList = [];
+      document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+      document.getElementById('fileReadyBanner').style.display = 'none';
+      document.getElementById('btnNextStep2').disabled = true;
+      document.getElementById('fileInputElem').value = '';
+      const gsheet = document.getElementById('gsheetInput');
+      if (gsheet) gsheet.value = '';
+
+      // Xóa dải thống kê trên đầu
+      document.getElementById('ovRfqCode').innerText = '— Chưa nạp tệp —';
+      document.getElementById('ovCustomer').innerText = 'Vui lòng tải tệp để bắt đầu';
+      document.getElementById('ovStatus').innerText = 'CHỜ DỮ LIỆU';
+      document.getElementById('ovStatus').style.color = 'var(--ink-dim)';
+      document.getElementById('ovStatusNote').innerText = 'Chưa qua phân tích';
+      document.getElementById('ovTotalBalance').innerText = '0 VNĐ';
+      document.getElementById('ovVatNote').innerText = 'Chưa tính VAT';
+      document.getElementById('ovMargin').innerText = '0.0%';
+      document.getElementById('ovMarginNote').innerText = 'Chưa có dữ liệu';
+
+      // Xóa bảng Bước 2
+      document.getElementById('cleanedDataTbody').innerHTML = `
+        <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--ink-muted);">Chưa có dữ liệu. Vui lòng quay lại Bước 1 để tải tệp mới lên.</td></tr>
+      `;
+      document.getElementById('cleanTableRowCount').innerText = '0 hạng mục · Chưa nạp tệp';
+      const cleanAlertBox = document.getElementById('cleanAlertBox');
+      if (cleanAlertBox) cleanAlertBox.className = 'alert alert-green';
+      const cleanAlertIcon = document.getElementById('cleanAlertIcon');
+      if (cleanAlertIcon) cleanAlertIcon.innerText = '✓';
+      const cleanAlertContent = document.getElementById('cleanAlertContent');
+      if (cleanAlertContent) cleanAlertContent.innerHTML = '<b>Dữ liệu đã được làm sạch thành công:</b> Chưa nạp tệp.';
+
+      // Xóa kết quả Bước 3
+      const aiBox = document.getElementById('aiProgressBox');
+      if (aiBox) aiBox.style.display = 'none';
+      document.getElementById('pStatExtraction').innerText = '—';
+      document.getElementById('pStatExtractionSub').innerText = 'Chờ chạy phân tích';
+      document.getElementById('pStatSchedule').innerText = '—';
+      document.getElementById('pStatScheduleSub').innerText = 'Chờ chạy phân tích';
+      document.getElementById('pStatPricing').innerText = '—';
+      document.getElementById('pStatPricingSub').innerText = 'Chờ chạy phân tích';
+
+      document.getElementById('matrixDataTbody').innerHTML = `
+        <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--ink-muted);">Chưa có kết quả ma trận. Vui lòng hoàn tất nạp dữ liệu ở Bước 1 & 2.</td></tr>
+      `;
+
+      // Xóa ý kiến Bước 4
+      document.getElementById('msgSales').innerText = 'Chưa có nhận xét.';
+      document.getElementById('msgCeo').innerText = 'Chưa có nhận xét.';
+      document.getElementById('msgTech').innerText = 'Chưa có nhận xét.';
+
+      setStep(1);
+      showToast('Khởi Tạo Phiên Mới', 'Đã làm mới không gian làm việc. Bắt đầu từ 1 tệp mới hoàn toàn!', 'info');
+    }
+
+    // 1. TẢI FILE LÊN (Gửi multipart lên /api/clean-data)
+    function triggerFileInput() {
+      document.getElementById('fileInputElem').click();
+    }
+
+    function handleFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById('fileReadyBanner').style.display = 'flex';
+      document.getElementById('fileReadyName').innerText = file.name;
+      document.getElementById('fileReadySub').innerText = `Kích thước: ${(file.size/1024).toFixed(1)} KB · Đang đọc và làm sạch dữ liệu Canonical Staging...`;
+      showToast('Đang Làm Sạch', `Đang chuẩn hóa dữ liệu từ ${file.name}...`, 'info');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/api/clean-data', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        processCleanDataSuccess(data, file.name);
+      })
+      .catch(err => {
+        showToast('Lỗi Đọc Tệp', err.message, 'warning');
+        document.getElementById('fileReadySub').innerText = `Lỗi: ${err.message}`;
+      });
+    }
+
+    // 2. NẠP LINK GOOGLE SHEETS LÊN BACKEND
+    function handleGSheetSubmit() {
+      const url = document.getElementById('gsheetInput').value.trim();
+      if (!url) {
+        showToast('Cảnh Báo', 'Vui lòng nhập đường dẫn Google Sheets!', 'warning');
+        return;
+      }
+
+      showToast('Đang Đồng Bộ', 'Đang kết nối và làm sạch dữ liệu từ Google Sheets...', 'info');
+
+      fetch('/api/clean-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input_type: 'google_sheets', url: url })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        processCleanDataSuccess(data, 'Google Sheets Online');
+      })
+      .catch(err => {
+        showToast('Lỗi Google Sheets', err.message, 'warning');
+      });
+    }
+
+    // 3. NẠP HỒ SƠ MẪU BẰNG API BACKEND
+    function loadSampleByApi(sampleId) {
+      showToast('Đang Nạp Mẫu', 'Đang tải và làm sạch hồ sơ mẫu...', 'info');
+      
+      document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+      const activeCard = document.getElementById(`cardPreset${sampleId.charAt(0).toUpperCase() + sampleId.slice(1)}`);
+      if (activeCard) activeCard.classList.add('active');
+
+      fetch('/api/clean-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input_type: 'sample', sample_id: sampleId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        const sampleNames = { alpha: 'AlphaTech VN (Mẫu Chuẩn)', vietfin: 'VietFin Bank (Mẫu Chuyển Duyệt)', ankhang: 'BV An Khang (Mẫu Đề Xuất Loại)' };
+        processCleanDataSuccess(data, sampleNames[sampleId] || sampleId);
+        showScreen('screenWorkspace');
+      })
+      .catch(err => {
+        showToast('Lỗi Nạp Mẫu', err.message, 'warning');
+      });
+    }
+
+    // Xử lý khi API /api/clean-data trả về thành công
+    function processCleanDataSuccess(data, sourceName) {
+      currentCleaningSession = data;
+      currentItemsList = (data.items || []).map((it, idx) => ({
+        stt: it.stt || (idx + 1).toString(),
+        item_name: it.item_name || '',
+        quantity: parseInt(it.quantity, 10) || 1,
+        unit: it.unit || 'Bộ',
+        specs: it.specs || 'Tiêu chuẩn',
+        has_error: it.has_error || false,
+        error_msg: it.error_msg || ''
+      }));
+
+      // Cập nhật banner bước 1
+      document.getElementById('fileReadyBanner').style.display = 'flex';
+      document.getElementById('fileReadyName').innerText = sourceName;
+      document.getElementById('fileReadySub').innerText = `Đã làm sạch xong ${currentItemsList.length} hạng mục thiết bị. Bấm chuyển sang Bước 2 để kiểm duyệt bảng.`;
+      document.getElementById('btnNextStep2').disabled = false;
+
+      // Cập nhật dải thống kê trên đầu
+      document.getElementById('ovRfqCode').innerText = data.rfq_code;
+      document.getElementById('ovCustomer').innerText = data.customer_name;
+      document.getElementById('ovStatus').innerText = 'ĐÃ LÀM SẠCH (Chờ duyệt)';
+      document.getElementById('ovStatus').style.color = '#2563eb';
+      document.getElementById('ovStatusNote').innerText = data.validation.is_valid ? 'Đạt chuẩn Canonical Staging' : `Phát hiện ${data.validation.error_count} cảnh báo`;
+      document.getElementById('ovTotalBalance').innerText = 'Chờ định giá';
+      document.getElementById('ovMargin').innerText = 'Chờ phân tích';
+
+      // Render bảng Bước 2
+      renderCleanedTable(currentItemsList, data.validation);
+
+      showToast('Làm Sạch Xong', `Đã chuẩn hóa ${currentItemsList.length} hạng mục từ ${sourceName}!`, 'success');
+      // Chuyển sang bước 2 để xem bảng làm sạch
+      setTimeout(() => setStep(2), 400);
+    }
+
+    // Render bảng Bước 2 với các ô input chỉnh sửa trực tiếp
+    function renderCleanedTable(items, validation) {
+      const tbodyClean = document.getElementById('cleanedDataTbody');
+      tbodyClean.innerHTML = '';
+
+      document.getElementById('cleanTableRowCount').innerText = `${items.length} hạng mục · Nguồn: ${currentCleaningSession.source_name}`;
+
+      const alertBox = document.getElementById('cleanAlertBox');
+      const alertIcon = document.getElementById('cleanAlertIcon');
+      const alertContent = document.getElementById('cleanAlertContent');
+
+      if (validation && !validation.is_valid) {
+        alertBox.className = 'alert alert-rose';
+        alertIcon.innerText = '⚠️';
+        alertContent.innerHTML = `
+          <b>Phát hiện ${validation.error_count} cảnh báo trong dữ liệu:</b><br>
+          ${validation.errors.join('<br>')}<br>
+          <small style="display:block;margin-top:4px;">Bạn có thể sửa trực tiếp số lượng/tên thiết bị ngay trên bảng bên dưới hoặc <a href="javascript:void(0)" onclick="setStep(1)" style="color:#b91c1c;font-weight:700;text-decoration:underline;">Quay lại Bước 1 nạp lại tệp khác</a>.</small>
+        `;
+      } else {
+        alertBox.className = 'alert alert-green';
+        alertIcon.innerText = '✓';
+        const phase2a = currentCleaningSession.phase2a;
+        alertContent.innerHTML = `
+          <b>Dữ liệu đã được chuẩn hóa thành công:</b> Đã ánh xạ ${items.length} hạng mục thiết bị. Hạn chót: ${phase2a.deadline_days} ngày. Ngân sách trần: ${phase2a.budget_cap_vnd > 0 ? phase2a.budget_cap_vnd.toLocaleString('vi-VN') + ' đ' : 'Chưa giới hạn'}.
+        `;
+      }
+
+      items.forEach((it, idx) => {
+        const tr = document.createElement('tr');
+        const isQtyErr = it.quantity <= 0;
+        const isNameErr = !it.item_name.trim();
+        const hasErr = isQtyErr || isNameErr || it.has_error;
+
+        tr.innerHTML = `
+          <td style="width:45px;"><b>${it.stt}</b></td>
+          <td>
+            <input type="text" class="cell-input ${isNameErr ? 'error' : ''}" value="${escapeHtml(it.item_name)}" onchange="onRowCellChange(${idx}, 'item_name', this.value)" placeholder="Tên thiết bị...">
+          </td>
+          <td style="width:105px;">
+            <input type="number" min="1" class="cell-input cell-input-sm ${isQtyErr ? 'error' : ''}" value="${it.quantity}" onchange="onRowCellChange(${idx}, 'quantity', this.value)">
+          </td>
+          <td style="width:85px;">
+            <input type="text" class="cell-input cell-input-sm" value="${escapeHtml(it.unit || 'Bộ')}" onchange="onRowCellChange(${idx}, 'unit', this.value)">
+          </td>
+          <td>
+            <input type="text" class="cell-input" value="${escapeHtml(it.specs || '')}" onchange="onRowCellChange(${idx}, 'specs', this.value)" placeholder="Thông số kỹ thuật...">
+          </td>
+          <td style="width:130px;" id="rowStatusBadge_${idx}">
+            ${hasErr 
+              ? `<span class="status-badge" style="background:#fee2e2;color:#b91c1c;">⚠️ ${isQtyErr ? 'Lỗi SL <= 0' : (isNameErr ? 'Thiếu tên' : it.error_msg)}</span>`
+              : `<span class="status-badge" style="background:#e8f5ec;color:var(--primary);">✓ Đã Chuẩn Hóa</span>`}
+          </td>
+          <td style="width:45px;text-align:center;">
+            <button class="cell-delete-btn" onclick="deleteCleanedRow(${idx})" title="Xóa dòng này">✕</button>
+          </td>
+        `;
+        tbodyClean.appendChild(tr);
+      });
+    }
+
+    // Xử lý khi người dùng sửa trực tiếp trong bảng
+    function onRowCellChange(idx, field, value) {
+      if (!currentItemsList[idx]) return;
+      if (field === 'quantity') {
+        currentItemsList[idx].quantity = parseInt(value, 10) || 0;
+      } else {
+        currentItemsList[idx][field] = value;
+      }
+
+      // Re-validate
+      let hasAnyErr = false;
+      let errList = [];
+      currentItemsList.forEach((it, i) => {
+        let rowErr = [];
+        if (!it.item_name.trim()) rowErr.push(`Dòng ${it.stt}: Tên thiết bị không được để trống.`);
+        if (it.quantity <= 0) rowErr.push(`Dòng ${it.stt}: Số lượng phải > 0.`);
+        it.has_error = rowErr.length > 0;
+        it.error_msg = rowErr.join(' · ');
+        if (it.has_error) {
+          hasAnyErr = true;
+          errList.push(...rowErr);
+        }
+      });
+
+      renderCleanedTable(currentItemsList, {
+        is_valid: !hasAnyErr,
+        error_count: errList.length,
+        errors: errList
+      });
+    }
+
+    // Thêm dòng mới vào bảng làm sạch
+    function addCleanedRow() {
+      const nextStt = (currentItemsList.length + 1).toString();
+      currentItemsList.push({
+        stt: nextStt,
+        item_name: 'Thiết bị bổ sung',
+        quantity: 1,
+        unit: 'Bộ',
+        specs: 'Tiêu chuẩn',
+        has_error: false,
+        error_msg: ''
+      });
+      renderCleanedTable(currentItemsList, { is_valid: true, error_count: 0, errors: [] });
+      showToast('Đã Thêm', `Đã thêm dòng STT ${nextStt} vào bảng làm sạch.`, 'info');
+    }
+
+    // Xóa dòng trong bảng làm sạch
+    function deleteCleanedRow(idx) {
+      if (currentItemsList.length <= 1) {
+        showToast('Cảnh Báo', 'Bảng cần có ít nhất 1 dòng thiết bị!', 'warning');
+        return;
+      }
+      currentItemsList.splice(idx, 1);
+      currentItemsList.forEach((it, i) => it.stt = (i + 1).toString());
+      renderCleanedTable(currentItemsList, { is_valid: true, error_count: 0, errors: [] });
+    }
+
+    // Thoát ký tự HTML an toàn
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // BƯỚC 2 -> BƯỚC 3: XÁC NHẬN BẢNG SẠCH VÀ CHẠY PHÂN TÍCH AI 4 CẤP ĐỘ
+    function executeAiAnalysis() {
+      if (!currentCleaningSession || currentItemsList.length === 0) {
+        showToast('Chưa Có Dữ Liệu', 'Vui lòng nạp tệp ở Bước 1 trước khi chạy phân tích!', 'warning');
+        return;
+      }
+
+      // Kiểm tra lỗi trước khi chạy
+      const invalidRows = currentItemsList.filter(it => it.quantity <= 0 || !it.item_name.trim());
+      if (invalidRows.length > 0) {
+        showToast('Chưa Đủ Điều Kiện', `Còn ${invalidRows.length} dòng có số lượng <= 0 hoặc tên trống. Vui lòng sửa lại!`, 'warning');
+        return;
+      }
+
+      setStep(3);
+
+      // Hiển thị thanh tiến trình AI
+      const pBox = document.getElementById('aiProgressBox');
+      const pTitle = document.getElementById('aiProgressTitle');
+      const pPct = document.getElementById('aiProgressPct');
+      const pFill = document.getElementById('aiProgressFill');
+      const pDesc = document.getElementById('aiProgressStepDesc');
+
+      pBox.style.display = 'block';
+      pFill.style.width = '15%';
+      pPct.innerText = '15%';
+      pTitle.innerText = 'Đang chạy Phân Tích AI 4 Cấp Độ...';
+      pDesc.innerText = 'Phase 2a: Trích xuất điều kiện bắt buộc, ngân sách trần và SLA...';
+
+      setTimeout(() => {
+        pFill.style.width = '45%';
+        pPct.innerText = '45%';
+        pDesc.innerText = 'Phase 2b: Đối chiếu 13 mã giải pháp catalog và tính toán lịch trình thi công...';
+      }, 300);
+
+      setTimeout(() => {
+        pFill.style.width = '75%';
+        pPct.innerText = '75%';
+        pDesc.innerText = 'Phase 2c: Tính toán giá niêm yết, thẩm định 4 tier chiết khấu và biên lợi nhuận gộp COGS...';
+      }, 600);
+
+      fetch('/api/run-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rfq_code: currentCleaningSession.rfq_code,
+          items: currentItemsList
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        if (data.state) {
+          pFill.style.width = '100%';
+          pPct.innerText = '100%';
+          pDesc.innerText = 'Phase 2d: Đã tổng hợp xong Ma trận đáp ứng và xác định điểm kiểm soát HITL!';
+          
+          setTimeout(() => {
+            pBox.style.display = 'none';
+            applyStateToWorkspace(data.state, currentCleaningSession.source_name);
+            showToast('Phân Tích Hoàn Tất', 'AI Agent đã hoàn thành đối chiếu catalog và tính toán giá!', 'success');
+          }, 500);
+        }
+      })
+      .catch(err => {
+        pBox.style.display = 'none';
+        showToast('Lỗi Phân Tích AI', err.message, 'warning');
+      });
+    }
+
+    // ÁP DỤNG DỮ LIỆU THỰC TỪ BACKEND VÀO GIAO DIỆN (BƯỚC 3 & 4)
+    function applyStateToWorkspace(state, sourceName) {
+      currentSessionState = state;
+      const rc = state.receipt_classification;
+      const ext = state.information_extraction;
+      const sol = state.solution_match;
+      const pr = state.price_and_discount;
+      const draft = state.draft_output;
+
+      // 1. Cập nhật Overview Strip trên đầu
+      document.getElementById('ovRfqCode').innerText = rc.rfq_code;
+      document.getElementById('ovCustomer').innerText = rc.customer_name;
+      
+      const ovStatus = document.getElementById('ovStatus');
+      ovStatus.innerText = draft.recommendation_label;
+      if (draft.recommendation_code === 'PASS_READY') {
+        ovStatus.style.color = 'var(--primary)';
+      } else if (draft.recommendation_code === 'NEEDS_ESCALATION') {
+        ovStatus.style.color = '#d97706';
+      } else {
+        ovStatus.style.color = 'var(--accent-danger)';
+      }
+      document.getElementById('ovStatusNote').innerText = draft.recommendation_summary.substring(0, 48) + '...';
+      document.getElementById('ovTotalBalance').innerText = `${(pr.total_with_vat / 1000000).toFixed(1)} Triệu`;
+      document.getElementById('ovVatNote').innerText = `Gồm VAT 10% · Giá niêm yết: ${(pr.list_price_total/1000000).toFixed(1)}M`;
+      document.getElementById('ovMargin').innerText = `${pr.gross_margin_pct.toFixed(1)}%`;
+      document.getElementById('ovMarginNote').innerText = `Lãi gộp: ${(pr.gross_profit/1000000).toFixed(1)} Tr / COGS: ${(pr.cogs_estimate/1000000).toFixed(1)}M`;
+
+      // 2. Cập nhật Bước 3: Phân tích Kỹ thuật & Giá
+      document.getElementById('pStatExtraction').innerText = `${ext.extracted_items.length} Hạng Mục`;
+      document.getElementById('pStatExtractionSub').innerText = ext.sla_req || 'SLA Tiêu chuẩn';
+      
+      document.getElementById('pStatSchedule').innerText = `${sol.total_required_days} Ngày (${sol.is_feasible_schedule ? 'Khả thi' : 'Lịch rất gấp'})`;
+      document.getElementById('pStatScheduleSub').innerText = `Lead hàng: ${sol.max_lead_time_days} ngày + Thi công: ${sol.est_work_days} ngày`;
+      
+      document.getElementById('pStatPricing').innerText = `${pr.proposed_discount_pct.toFixed(1)}% Chiết Khấu`;
+      document.getElementById('pStatPricingSub').innerText = `${pr.applied_tier.tier_name} (Trần ${pr.max_allowed_discount_pct}%) · ${pr.discount_violation ? '⚠️ Vượt hạn mức' : '✓ Hợp lệ'}`;
+
+      // Bảng Ma trận Bước 3
+      const tbodyMatrix = document.getElementById('matrixDataTbody');
+      tbodyMatrix.innerHTML = '';
+      sol.matched_solutions.forEach(m => {
+        const tr = document.createElement('tr');
+        const isOutOfCatalog = m.matched_product_id === 'OUT-OF-CATALOG';
+        const riskText = isOutOfCatalog ? '⚠️ Ngoài Danh Mục' : (sol.is_feasible_schedule ? 'Thấp (An toàn)' : 'Cao (Tiến độ gấp)');
+        const riskColor = isOutOfCatalog || !sol.is_feasible_schedule ? 'var(--accent-danger)' : 'var(--primary)';
+        tr.innerHTML = `
+          <td><code>${m.matched_product_id}</code></td>
+          <td><b>${m.matched_product_name}</b></td>
+          <td><span class="status-badge" style="background:${isOutOfCatalog ? '#fee2e2' : '#e8f5ec'};color:${isOutOfCatalog ? '#b91c1c' : 'var(--primary)'};">${m.compliance_notes}</span></td>
+          <td>${m.lead_time_days} ngày</td>
+          <td>${m.unit_price.toLocaleString('vi-VN')} đ</td>
+          <td><b>${m.total_price.toLocaleString('vi-VN')} đ</b></td>
+          <td><b style="color:${riskColor};">${riskText}</b></td>
+        `;
+        tbodyMatrix.appendChild(tr);
+      });
+
+      // 3. Cập nhật Bước 4: Ý kiến hội đồng & Quyết định
+      if (draft.recommendation_code === 'PASS_READY') {
+        document.getElementById('msgSales').innerText = 'Đã đối chiếu 100% yêu cầu. Hạng mục đều khớp catalog, chiết khấu trong khung.';
+        document.getElementById('msgCeo').innerText = 'Phương án đạt chuẩn biên lãi và quy chế, cho phép xuất bản chào giá ngay.';
+        document.getElementById('msgTech').innerText = `Lịch đội kỹ sư trống, cam kết hoàn thành trong ${sol.total_required_days} ngày.`;
+      } else if (draft.recommendation_code === 'NEEDS_ESCALATION') {
+        document.getElementById('msgSales').innerText = 'Khách hàng có một số yêu cầu đặc biệt hoặc chiết khấu vượt khung, cần chuyển duyệt.';
+        document.getElementById('msgCeo').innerText = 'Cần họp Hội đồng thẩm định để ký duyệt ngoại lệ (Waiver) trước khi gửi khách hàng.';
+        document.getElementById('msgTech').innerText = `Tiến độ hoặc chủng loại thiết bị có rủi ro, cần bổ sung đối tác hỗ trợ.`;
+      } else {
+        document.getElementById('msgSales').innerText = 'Ngân sách khách hàng đưa ra quá thấp so với chi phí thiết bị tối thiểu.';
+        document.getElementById('msgCeo').innerText = 'Khuyến nghị không tham gia chào giá để tránh thua lỗ và đền bù hợp đồng.';
+        document.getElementById('msgTech').innerText = 'Tiến độ hoặc cấu hình bất khả thi về mặt vật lý.';
+      }
+
+      // Cập nhật Link tải file Word .DOCX
+      document.getElementById('btnDlMatrix').href = `/api/download/requirements_matrix?rfq_code=${rc.rfq_code}`;
+      document.getElementById('btnDlQuotation').href = `/api/download/official_quotation?rfq_code=${rc.rfq_code}`;
+      document.getElementById('btnDlApproval').href = `/api/download/approval_form?rfq_code=${rc.rfq_code}`;
+    }
+
+    // Xuất file CSV đã làm sạch ở bước 2
+    function exportCleanedCsv() {
+      const items = currentItemsList.length > 0 ? currentItemsList : (currentSessionState ? currentSessionState.information_extraction.extracted_items : []);
+      if (!items || items.length === 0) {
+        showToast('Chưa có dữ liệu', 'Vui lòng nạp tệp trước khi xuất CSV!', 'warning');
+        return;
+      }
+      const rfqCode = currentCleaningSession ? currentCleaningSession.rfq_code : (currentSessionState ? currentSessionState.receipt_classification.rfq_code : 'RFQ_NEW');
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFFSTT,Ten_Thiet_Bi,So_Luong,Don_Vi,Thong_So\n";
+      items.forEach(it => {
+        csvContent += `"${it.stt}","${it.item_name}","${it.quantity}","${it.unit || 'Bộ'}","${(it.specs || '').replace(/"/g, '""')}"\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Bao_Cao_Lam_Sach_${rfqCode}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Xuất CSV', 'Đã tải xuống bảng dữ liệu làm sạch!', 'success');
+    }
+
+    // Chuyển Bước Trong Workspace (1 -> 2 -> 3 -> 4)
+    function setStep(stepNum) {
+      currentStep = stepNum;
+
+      // Cập nhật nút sidebar
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`stepBtn${i}`);
+        if (btn) btn.classList.toggle('active', i === stepNum);
+      }
+
+      // Cập nhật tiêu đề Topbar
+      const titles = {
+        1: { title: '01 / Nạp Dữ Liệu Đầu Vào', sub: 'Tiếp nhận hồ sơ chào giá qua Google Sheets, CSV hoặc DOCX' },
+        2: { title: '02 / Duyệt Làm Sạch (HITL 1)', sub: 'Kiểm tra bảng chuẩn hóa dữ liệu sau tầng Canonical Staging' },
+        3: { title: '03 / Phân Tích Kỹ Thuật & Giá', sub: 'Khớp danh mục giải pháp, lịch thi công và chiết khấu thương mại' },
+        4: { title: '04 / Phê Duyệt Cuối & Bàn Giao', sub: 'Hội đồng thẩm định ký duyệt và xuất 4 bộ tài liệu .DOCX' }
+      };
+      document.getElementById('stageTitleTxt').innerText = titles[stepNum].title;
+      document.getElementById('stageSubTxt').innerText = titles[stepNum].sub;
+
+      // Hiển thị nội dung pane tương ứng
+      for (let i = 1; i <= 4; i++) {
+        const pane = document.getElementById(`stageStep${i}`);
+        if (pane) pane.style.display = (i === stepNum) ? 'block' : 'none';
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Thao tác Quyết định (Gửi lên API /api/human-decision)
+    function handleDecision(decisionType) {
+      if (!currentSessionState) {
+        showToast('Chưa có hồ sơ', 'Vui lòng nạp tệp trước khi ra quyết định!', 'warning');
+        return;
+      }
+      const rfq_code = currentSessionState.receipt_classification.rfq_code;
+
+      fetch('/api/human-decision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rfq_code: rfq_code,
+          decision_data: { decision_type: decisionType }
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showToast('Quyết Định Thành Công', data.message, decisionType === 'APPROVE_SCHEME' ? 'success' : 'warning');
+        }
+      })
+      .catch(err => {
+        showToast('Lỗi Xử Lý', err.message, 'warning');
+      });
+    }
+
+    // Ký Waiver Hội đồng (Gửi lên API)
+    function confirmWaiver() {
+      closeModal('waiverModal');
+      const discount = document.getElementById('waiverDiscountInput').value || '10';
+      if (!currentSessionState) return;
+
+      const rfq_code = currentSessionState.receipt_classification.rfq_code;
+      fetch('/api/human-decision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rfq_code: rfq_code,
+          decision_data: {
+            decision_type: 'APPROVAL_MEETING',
+            waiver_details: `Hội đồng đã duyệt thông qua mức chiết khấu ngoại lệ ${discount}%, bổ sung phương án tăng cường kỹ sư.`
+          }
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        showToast('Hội Đồng Phê Duyệt', `Đã ký biên bản duyệt ngoại lệ với chiết khấu ${discount}%!`, 'success');
+      })
+      .catch(err => {
+        showToast('Lỗi Duyệt Waiver', err.message, 'warning');
+      });
+    }
+
+    // Quản lý Modal
+    function openModal(modalId) {
+      const m = document.getElementById(modalId);
+      if (m) m.style.display = 'flex';
+    }
+    function closeModal(modalId) {
+      const m = document.getElementById(modalId);
+      if (m) m.style.display = 'none';
+    }
+
+    // Toast Notification
+    function showToast(title, msg, type = 'info') {
+      const root = document.getElementById('toast-root');
+      const t = document.createElement('div');
+      t.className = 'toast-box';
+      const icon = type === 'success' ? '✓' : (type === 'warning' ? '⚠' : 'ℹ');
+      const iconColor = type === 'success' ? 'var(--primary)' : (type === 'warning' ? '#d97706' : '#2563eb');
+      t.innerHTML = `
+        <div style="font-size:16px;color:${iconColor};font-weight:900;">${icon}</div>
+        <div>
+          <b style="font-size:13px;display:block;color:var(--ink);">${title}</b>
+          <span style="font-size:11.5px;color:var(--ink-muted);line-height:1.4;">${msg}</span>
+        </div>
+      `;
+      root.appendChild(t);
+      setTimeout(() => {
+        t.style.transition = 'all 0.4s';
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(-10px)';
+        setTimeout(() => t.remove(), 400);
+      }, 4000);
+    }
+
+    // Gemini Chat
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const container = document.getElementById('chatContainer');
+
+      // User Bubble
+      const uBubble = document.createElement('div');
+      uBubble.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:8px;';
+      uBubble.innerHTML = `<div style="background:var(--primary);color:#fff;padding:10px 14px;border-radius:12px;font-size:12.5px;max-width:80%;line-height:1.5;">${text}</div>`;
+      container.appendChild(uBubble);
+      input.value = '';
+      container.scrollTop = container.scrollHeight;
+
+      // Loading bubble
+      const lBubble = document.createElement('div');
+      lBubble.style.cssText = 'display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink-muted);';
+      lBubble.innerHTML = `<div class="brand-icon" style="width:24px;height:24px;font-size:9px;">TM</div><span>Gemini 3.5 đang phân tích hồ sơ...</span>`;
+      container.appendChild(lBubble);
+      container.scrollTop = container.scrollHeight;
+
+      const rfq_code = currentSessionState ? currentSessionState.receipt_classification.rfq_code : 'alpha';
+
+      // Fetch API
+      fetch('/api/gemini-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, rfq_code: rfq_code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        lBubble.remove();
+        const aBubble = document.createElement('div');
+        aBubble.style.cssText = 'display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;';
+        aBubble.innerHTML = `
+          <div class="brand-icon" style="width:28px;height:28px;font-size:10px;">TM</div>
+          <div style="background:#fff;padding:10px 14px;border-radius:12px;font-size:12.5px;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,0.03);line-height:1.6;max-width:85%;white-space:pre-wrap;">
+            ${data.reply || 'Đã phân tích xong.'}
+          </div>
+        `;
+        container.appendChild(aBubble);
+        container.scrollTop = container.scrollHeight;
+      })
+      .catch(err => {
+        lBubble.remove();
+        showToast('Lỗi AI Chat', err.message, 'warning');
+      });
+    }
+
+    // Drag over styling
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFileSelected({ target: { files: e.dataTransfer.files } });
+      }
+    });
+
+    // Khởi tạo mặc định: để màn hình ở trạng thái phiên mới (sạch sẽ, chờ người dùng nạp tệp)
+    window.addEventListener('DOMContentLoaded', () => {
+      // Mặc định ở màn hình intro hoặc workspace mới hoàn toàn
+      resetWorkspaceNewSession();
+    });
+  </script>
+</body>
+</html>
